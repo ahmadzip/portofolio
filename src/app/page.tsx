@@ -29,7 +29,7 @@ export default function Home() {
           <div className="text-center">
             <Link
               className="p-3 text-blue-900"
-              href="www.linkedin.com/in/ahamdsulaeman"
+              href="https://www.linkedin.com/in/ahamdsulaeman/"
             >
               LinkedIn
             </Link>
