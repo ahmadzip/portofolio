@@ -1,7 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useTheme } from "next-themes";
-import { FaRegMoon, FaRegSun } from "react-icons/fa6";
 
 export const ThemeSwitcher = () => {
   const [mounted, setMounted] = useState(false);

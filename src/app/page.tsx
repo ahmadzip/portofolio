@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import EmojiReactions from "./_component/EmojiReactions";
 
 export default function Home() {
   useEffect(() => {
@@ -45,6 +46,9 @@ export default function Home() {
                   Instagram
                 </Link>
               </div>
+              <div className="mt-4 flex justify-center md:justify-start">
+                <EmojiReactions />
+              </div>
             </div>
             <div className="md:w-1/2 flex justify-center mb-8 md:mb-0">
               <Image
@@ -61,13 +65,6 @@ export default function Home() {
           <p>© 2024 Ahmad Sulaeman. All rights reserved.</p>
         </footer>
       </div>
-      <style jsx>{`
-        @media (max-width: 768px) {
-          .md\\:w-1\\/2.flex.justify-center.mb-8.md\\:mb-0 {
-            margin-bottom: 16px;
-          }
-        }
-      `}</style>
     </>
   );
 }
