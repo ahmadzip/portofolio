@@ -6,20 +6,13 @@ import Link from "next/link";
 import EmojiReactions from "./_component/EmojiReactions";
 
 export default function Home() {
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = "unset";
-    };
-  }, []);
-
   return (
     <>
       <div className="flex flex-col justify-between min-h-screen items-center bg-white dark:bg-gray-900 text-black dark:text-white">
         <nav className="p-4 flex justify-between items-center w-full">
           <h1 className="text-2xl font-bold">Ahmad Sulaeman</h1>
         </nav>
-        <main className="container mx-auto px-4 py-8 max-w-4xl">
+        <main className="container mx-auto px-4 py-8 max-w-4xl overflow-auto">
           <div className="flex flex-col-reverse md:flex-row items-center justify-center md:space-x-8">
             <div className="md:w-1/2 mb-8 md:mb-0 text-center md:text-left">
               <h2 className="text-4xl font-bold mb-4">InHouse Developer</h2>
@@ -51,13 +44,17 @@ export default function Home() {
               </div>
             </div>
             <div className="md:w-1/2 flex justify-center mb-8 md:mb-0">
-              <Image
-                src="/gif.gif"
-                alt="Ahmad Sulaeman"
-                width={400}
-                height={400}
-                className="rounded-full border-4 border-blue-500 dark:border-blue-300"
-              />
+              <div className="max-w-xs mx-auto md:max-w-full">
+                <Image
+                  src="/gif.gif"
+                  alt="Ahmad Sulaeman"
+                  width={400}
+                  height={400}
+                  layout="responsive"
+                  className="rounded-full border-4 border-blue-500 dark:border-blue-300"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                />
+              </div>
             </div>
           </div>
         </main>

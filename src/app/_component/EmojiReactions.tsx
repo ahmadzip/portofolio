@@ -7,7 +7,10 @@ import EmojiButton from "./EmojiButton";
 import FloatingEmoji from "./FloatingEmoji";
 
 const socket = io(
-  process.env.NEXT_PUBLIC_SOCKET_SERVER || "http://localhost:3001"
+  process.env.NEXT_PUBLIC_SOCKET_SERVER || "http://localhost:3001",
+  {
+    secure: true,
+  }
 );
 
 const emojis = ["❤️️", "🔥", "🚀", "🤯"];
