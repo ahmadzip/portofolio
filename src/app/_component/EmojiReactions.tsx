@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
 import io from "socket.io-client";
 import EmojiButton from "./EmojiButton";
 import FloatingEmoji from "./FloatingEmoji";
@@ -16,71 +15,75 @@ const socket = io(
 const emojis = ["❤️️", "🔥", "🚀", "🤯"];
 
 const EmojiReactions: React.FC = () => {
-  const [TerbangEmojis, setTerbangEmojis] = useState<
+  const [floatingEmojis, setFloatingEmojis] = useState<
     {
       id: number;
       emoji: string;
       x: number;
       y: number;
-      hasilX: number;
-      hasilY: number;
     }[]
+  >([]);
+  const [buttonPositions, setButtonPositions] = useState<
+    { x: number; y: number }[]
   >([]);
   const containerRef = useRef<HTMLDivElement>(null);
   const emojiIdRef = useRef(0);
 
   useEffect(() => {
+    const posisi = () => {
+      if (containerRef.current) {
+        const containerRect = containerRef.current.getBoundingClientRect();
+        const buttons = Array.from(
+          containerRef.current.querySelectorAll("button")
+        );
+        const positions = buttons.map((button) => {
+          const buttonRect = button.getBoundingClientRect();
+          const x =
+            buttonRect.left - containerRect.left + buttonRect.width / 2 - 14;
+          const y =
+            buttonRect.top - containerRect.top + buttonRect.height / 2 - 30;
+          return { x, y };
+        });
+        setButtonPositions(positions);
+      }
+    };
+
+    posisi();
+
     socket.on("connect", () => {
-      console.log("Connected to server");
+      console.log("Anda terhubung ke server");
     });
 
     socket.on("emojiClick", (data) => {
-      const { emoji, x, y, hasilX, hasilY } = data;
-      const EmojiBaru = {
+      const { emojiIndex } = data;
+      const position = buttonPositions[emojiIndex];
+      const EmojiNew = {
         id: emojiIdRef.current++,
-        emoji,
-        x,
-        y,
-        hasilX,
-        hasilY,
+        emoji: emojis[emojiIndex],
+        x: position.x,
+        y: position.y,
       };
-      setTerbangEmojis((prev) => [...prev, EmojiBaru]);
+      setFloatingEmojis((prev) => [...prev, EmojiNew]);
 
       setTimeout(() => {
-        setTerbangEmojis((prev) => prev.filter((e) => e.id !== EmojiBaru.id));
+        setFloatingEmojis((prev) => prev.filter((e) => e.id !== EmojiNew.id));
       }, 1000);
     });
 
     socket.on("disconnect", () => {
-      console.log("Disconnected from server");
+      console.log("Anda terputus dari server");
     });
 
     return () => {
       socket.off("emojiClick");
     };
-  }, []);
+  }, [buttonPositions]);
 
-  const handleEmojiClick = (
-    emoji: string,
+  const ClickEmoji = (
+    emojiIndex: number,
     event: React.MouseEvent<HTMLButtonElement, MouseEvent>
   ) => {
-    //jika container tidak ada, maka return
-    if (!containerRef.current) return;
-    //dapatkan posisi button dan container
-    const buttonRect = event.currentTarget.getBoundingClientRect();
-    const containerRect = containerRef.current.getBoundingClientRect();
-
-    //hitung posisi x dan y dari emoji
-    const x = buttonRect.left - containerRect.left + buttonRect.width / 2 - 12;
-    const y = buttonRect.top - containerRect.top + buttonRect.height / 2 - 12;
-
-    //nilai random untuk offset x
-    const randomXOffset = Math.random() * 100 - 50;
-    const hasilX = x + randomXOffset;
-    const hasilY = y - 150;
-
-    const emojiBaru = { emoji, x, y, hasilX, hasilY };
-    socket.emit("emojiClick", emojiBaru);
+    socket.emit("emojiClick", { emojiIndex });
   };
 
   return (
@@ -88,27 +91,30 @@ const EmojiReactions: React.FC = () => {
       ref={containerRef}
       className="relative flex flex-col items-center space-y-4 mt-4"
     >
-      <div className="flex space-x-4 bg-gray-800 p-4 rounded-full shadow-lg">
-        {emojis.map((emoji) => (
+      <div className="flex space-x-4 dark:bg-gray-800 bg-gray-50 p-4 rounded-full shadow-xl">
+        {emojis.map((emoji, index) => (
           <EmojiButton
             key={emoji}
             emoji={emoji}
-            onClick={(event) => handleEmojiClick(emoji, event)}
+            onClick={(event) => ClickEmoji(index, event)}
           />
         ))}
       </div>
       <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
-        {TerbangEmojis.map((TerbangEmoji) => (
+        {floatingEmojis.map((floatingEmoji) => (
           <FloatingEmoji
-            key={TerbangEmoji.id}
-            emoji={TerbangEmoji.emoji}
-            x={TerbangEmoji.x}
-            y={TerbangEmoji.y}
-            hasilX={TerbangEmoji.hasilX}
-            hasilY={TerbangEmoji.hasilY}
+            key={floatingEmoji.id}
+            emoji={floatingEmoji.emoji}
+            x={floatingEmoji.x}
+            y={floatingEmoji.y}
           />
         ))}
       </div>
+      <span className="text-xs text-gray-500 dark:text-gray-400 text-center">
+        Click an emoji to send it flying!
+        <br />
+        *btw this is real-time :)
+      </span>
     </div>
   );
 };

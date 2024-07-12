@@ -1,29 +1,39 @@
-import React from "react";
+"use client";
+
 import { motion } from "framer-motion";
+import { useEffect, useState } from "react";
 
 interface FloatingEmojiProps {
   emoji: string;
   x: number;
   y: number;
-  hasilX: number;
-  hasilY: number;
 }
 
-const FloatingEmoji: React.FC<FloatingEmojiProps> = ({
-  emoji,
-  x,
-  y,
-  hasilX,
-  hasilY,
-}) => (
-  <motion.div
-    initial={{ opacity: 1, x: x, y: y }}
-    animate={{ opacity: 0, x: hasilX, y: hasilY }}
-    transition={{ duration: 1, ease: "easeOut" }}
-    className="absolute text-2xl"
-  >
-    {emoji}
-  </motion.div>
-);
+const FloatingEmoji: React.FC<FloatingEmojiProps> = ({ emoji, x, y }) => {
+  const [randomX, setRandomX] = useState(0);
+
+  useEffect(() => {
+    setRandomX(Math.random() * 100 - 50);
+  }, []);
+
+  return (
+    <motion.div
+      initial={{ x, y }}
+      animate={{
+        x: [x, x + randomX, x - randomX, x],
+        y: y - 700,
+      }}
+      transition={{
+        duration: 3,
+        repeat: Infinity,
+        repeatType: "reverse",
+        ease: "easeInOut",
+      }}
+      className="absolute text-2xl"
+    >
+      {emoji}
+    </motion.div>
+  );
+};
 
 export default FloatingEmoji;
