@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import io from "socket.io-client";
 import EmojiButton from "./EmojiButton";
 import FloatingEmoji from "./FloatingEmoji";
@@ -29,45 +29,30 @@ const EmojiReactions: React.FC = () => {
   const containerRef = useRef<HTMLDivElement>(null);
   const emojiIdRef = useRef(0);
 
-  useEffect(() => {
-    const posisi = () => {
-      if (containerRef.current) {
-        const containerRect = containerRef.current.getBoundingClientRect();
-        const buttons = Array.from(
-          containerRef.current.querySelectorAll("button")
-        );
-        const positions = buttons.map((button) => {
-          const buttonRect = button.getBoundingClientRect();
-          const x =
-            buttonRect.left - containerRect.left + buttonRect.width / 2 - 14;
-          const y =
-            buttonRect.top - containerRect.top + buttonRect.height / 2 - 30;
-          return { x, y };
-        });
-        setButtonPositions(positions);
-      }
-    };
+  const updateButtonPositions = useCallback(() => {
+    if (containerRef.current) {
+      const containerRect = containerRef.current.getBoundingClientRect();
+      const buttons = Array.from(
+        containerRef.current.querySelectorAll("button")
+      );
+      const positions = buttons.map((button) => {
+        const buttonRect = button.getBoundingClientRect();
+        const x =
+          buttonRect.left - containerRect.left + buttonRect.width / 2 - 14;
+        const y =
+          buttonRect.top - containerRect.top + buttonRect.height / 2 - 30;
+        return { x, y };
+      });
+      setButtonPositions(positions);
+    }
+  }, []);
 
-    posisi();
+  useEffect(() => {
+    updateButtonPositions();
+    window.addEventListener("resize", updateButtonPositions);
 
     socket.on("connect", () => {
       console.log("Anda terhubung ke server");
-    });
-
-    socket.on("emojiClick", (data) => {
-      const { emojiIndex } = data;
-      const position = buttonPositions[emojiIndex];
-      const EmojiNew = {
-        id: emojiIdRef.current++,
-        emoji: emojis[emojiIndex],
-        x: position.x,
-        y: position.y,
-      };
-      setFloatingEmojis((prev) => [...prev, EmojiNew]);
-
-      setTimeout(() => {
-        setFloatingEmojis((prev) => prev.filter((e) => e.id !== EmojiNew.id));
-      }, 1000);
     });
 
     socket.on("disconnect", () => {
@@ -75,16 +60,45 @@ const EmojiReactions: React.FC = () => {
     });
 
     return () => {
+      window.removeEventListener("resize", updateButtonPositions);
+      socket.off("connect");
+      socket.off("disconnect");
+    };
+  }, [updateButtonPositions]);
+
+  useEffect(() => {
+    socket.on("emojiClick", (data) => {
+      const { emojiIndex } = data;
+      const position = buttonPositions[emojiIndex];
+      if (position) {
+        const EmojiNew = {
+          id: emojiIdRef.current++,
+          emoji: emojis[emojiIndex],
+          x: position.x,
+          y: position.y,
+        };
+        setFloatingEmojis((prev) => [...prev, EmojiNew]);
+
+        setTimeout(() => {
+          setFloatingEmojis((prev) => prev.filter((e) => e.id !== EmojiNew.id));
+        }, 1000);
+      }
+    });
+
+    return () => {
       socket.off("emojiClick");
     };
   }, [buttonPositions]);
 
-  const ClickEmoji = (
-    emojiIndex: number,
-    event: React.MouseEvent<HTMLButtonElement, MouseEvent>
-  ) => {
-    socket.emit("emojiClick", { emojiIndex });
-  };
+  const ClickEmoji = useCallback(
+    (
+      emojiIndex: number,
+      event: React.MouseEvent<HTMLButtonElement, MouseEvent>
+    ) => {
+      socket.emit("emojiClick", { emojiIndex });
+    },
+    []
+  );
 
   return (
     <div
@@ -97,6 +111,7 @@ const EmojiReactions: React.FC = () => {
             key={emoji}
             emoji={emoji}
             onClick={(event) => ClickEmoji(index, event)}
+            className="transition-all duration-300 ease-in-out transform hover:scale-110 hover:rotate-12 hover:shadow-lg"
           />
         ))}
       </div>

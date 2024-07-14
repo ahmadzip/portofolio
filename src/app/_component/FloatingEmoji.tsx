@@ -21,7 +21,7 @@ const FloatingEmoji: React.FC<FloatingEmojiProps> = ({ emoji, x, y }) => {
       initial={{ x, y }}
       animate={{
         x: [x, x + randomX, x - randomX, x],
-        y: y - 700,
+        y: y - 800,
       }}
       transition={{
         duration: 3,
